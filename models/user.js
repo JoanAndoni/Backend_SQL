@@ -1,42 +1,39 @@
-import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
-const saltRounds = 10;
+import { DataTypes } from 'sequelize';
+import db from '../config/database';
 
-const UserSchema = mongoose.Schema({
+const User = db.define('Users', {
     username: {
-        type: String,
-        required: true
+        type: DataTypes.STRING(20),
+        allowNull: false
     },
     password: {
-        type: String,
-        required: true
+        type: DataTypes.STRING(100),
+        allowNull: false
     }
+}, {
+    freezeTableName: true,
 });
 
-const User = module.exports = mongoose.model('User', UserSchema);
+module.exports = User;
 
-module.exports.getUserById = (id, callback) => {
-    User.findById(id, callback);
-}
+// module.exports.getUserByUsername = (username, callback) => {
+//     const query = {
+//         username: username
+//     }
+//     User.findOne(query, callback);
+// }
 
-module.exports.getUserByUsername = (username, callback) => {
-    const query = {
-        username: username
-    }
-    User.findOne(query, callback);
-}
+// module.exports.addUser = (newUser, callback) => {
+    // bcrypt.hash(newUser.password, saltRounds, (err, hash) => {
+    //     if (err) throw err;
+    //     newUser.password = hash;
+    //     newUser.save(callback);
+    // });
+// }
 
-module.exports.addUser = (newUser, callback) => {
-    bcrypt.hash(newUser.password, saltRounds, (err, hash) => {
-        if (err) throw err;
-        newUser.password = hash;
-        newUser.save(callback);
-    });
-}
-
-module.exports.comparePassword = (candidatePassword, hash, callback) => {
-    bcrypt.compare(candidatePassword, hash, (err, isMatch) => {
-        if (err) throw err;
-        callback(null, isMatch);
-    });
-}
+// module.exports.comparePassword = (candidatePassword, hash, callback) => {
+//     bcrypt.compare(candidatePassword, hash, (err, isMatch) => {
+//         if (err) throw err;
+//         callback(null, isMatch);
+//     });
+// }

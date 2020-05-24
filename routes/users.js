@@ -7,82 +7,122 @@
 import { Router } from 'express';
 import passport from 'passport';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 import * as config from '../config/variables';
 import User from '../models/user';
 const JWT_duration = 0.5; // Minutes
+const saltRounds = 10;
 
 const router = Router();
 
-router.post('/register', (req, res, next) => {
-    let newUser = new User({ ...req.body });
-
-    User.getUserByUsername(newUser.username, (err, user) => {
-        if (err) throw err;
-        if (user) {
-            return res.status(403).json({
+router.post('/getById', (req, res, next) => {
+    let userId = req.body.id;
+    User.findByPk(userId)
+        .then(user => {
+            res.status(201).json({
+                user: user
+            })
+        })
+        .catch(err => {
+            res.status(403).json({
                 success: false,
-                msg: `The user with username '${newUser.username}' already exist`
+                msg: `The user with id '${userId}' could not be found`,
+                error: err
             });
-        }
-        User.addUser(newUser, (err, user) => {
-            if (err) {
-                res.status(500).json({
-                    success: false,
-                    msg: `The user could not be registered`
-                });
-            } else if (user) {
+        });
+});
+
+router.post('/register', (req, res, next) => {
+    let newUser = { ...req.body };
+
+    // User.getUserByUsername(newUser.username, (err, user) => {
+    //     if (err) throw err;
+    //     if (user) {
+    //         return res.status(403).json({
+    //             success: false,
+    //             msg: `The user with username '${newUser.username}' already exist`
+    //         });
+    //     }
+
+    bcrypt.hash(newUser.password, saltRounds, (err, hash) => {
+        if (err) throw err;
+        newUser.password = hash;
+        User.create(newUser)
+            .then(user => {
                 res.status(201).json({
                     success: true,
                     msg: `User registered`,
-                    userId: user._id
+                    user: user
                 });
-            }
-        });
-    });
-});
-
-router.post('/authenticate', (req, res, next) => {
-    const username = req.body.username;
-    const password = req.body.password;
-
-    User.getUserByUsername(username, (err, user) => {
-        if (err) throw err;
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                msg: `There is no user with username '${username}'`
-            });
-        }
-        User.comparePassword(password, user.password, (err, isMatch) => {
-            if (err) throw err;
-            if (isMatch) {
-                const token = jwt.sign(user.toJSON(), config.secret, {
-                    expiresIn: JWT_duration * 60
-                });
-                res.status(202).json({
-                    success: true,
-                    access_token: 'JWT ' + token,
-                    user: {
-                        id: user._id,
-                        username: user.username
-                    }
-                });
-            } else {
-                return res.status(401).json({
+            })
+            .catch(err => {
+                res.status(500).json({
                     success: false,
-                    msg: 'Wrong Password'
+                    msg: `The user could not be registered`,
+                    error: err
                 });
-            }
-        });
+            });
     });
+
+    // User.addUser(newUser, (err, user) => {
+    //     if (err) {
+    //         res.status(500).json({
+    //             success: false,
+    //             msg: `The user could not be registered`
+    //         });
+    //     } else if (user) {
+    //         res.status(201).json({
+    //             success: true,
+    //             msg: `User registered`,
+    //             userId: user._id
+    //         });
+    //     }
+    // });
+    // });
 });
 
-router.get('/profile', passport.authenticate('jwt', { session: false }),
-    (req, res, next) => {
-        res.status(202).json({
-            id: req.user._id,
-            username: req.user.username
-        });
-    });
+// router.post('/authenticate', (req, res, next) => {
+//     const username = req.body.username;
+//     const password = req.body.password;
+
+//     User.getUserByUsername(username, (err, user) => {
+//         if (err) throw err;
+//         if (!user) {
+//             return res.status(404).json({
+//                 success: false,
+//                 msg: `There is no user with username '${username}'`
+//             });
+//         }
+//         User.comparePassword(password, user.password, (err, isMatch) => {
+//             if (err) throw err;
+//             if (isMatch) {
+//                 const token = jwt.sign(user.toJSON(), config.secret, {
+//                     expiresIn: JWT_duration * 60
+//                 });
+//                 res.status(202).json({
+//                     success: true,
+//                     access_token: 'JWT ' + token,
+//                     user: {
+//                         id: user._id,
+//                         username: user.username
+//                     }
+//                 });
+//             } else {
+//                 return res.status(401).json({
+//                     success: false,
+//                     msg: 'Wrong Password'
+//                 });
+//             }
+//         });
+//     });
+// });
+
+// router.get('/profile', passport.authenticate('jwt', { session: false }),
+//     (req, res, next) => {
+//         res.status(202).json({
+//             id: req.user._id,
+//             username: req.user.username
+//         });
+//     });
 
 module.exports = router;

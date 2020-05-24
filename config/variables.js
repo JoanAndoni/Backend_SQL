@@ -1,5 +1,8 @@
-const password = 'Password123'
-const databaseUrl = `mongodb+srv://admin:${password}@guri-vqf7u.mongodb.net/test?retryWrites=true&w=majority`;
+const bdConfig = {
+    database: 'postgres',
+    username: 'postgres',
+    password: 'password'
+}
 const secret = 'secretWordToEncode';
 
-export { databaseUrl, secret };
+export { bdConfig, secret };

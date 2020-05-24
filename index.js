@@ -3,21 +3,11 @@ import path from 'path';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import passport from 'passport';
-import mongoose from 'mongoose';
-import * as config from './config/variables';
+import db from './config/database';
 
-mongoose.connect(config.databaseUrl, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-});
-
-mongoose.connection.on('connected', () => {
-    console.log('Connected to the database');
-});
-
-mongoose.connection.on('error', (err) => {
-    console.log('Database error: ' + err);
-});
+db.authenticate()
+    .then(() => { console.log('Connected to the database') })
+    .catch(err => { console.log('Database error: ' + err) });
 
 const app = express();
 app.use(cors());
