@@ -56,14 +56,15 @@ router.post('/register', async (req, res, next) => {
                         res.status(201).json({
                             success: true,
                             msg: `User registered`,
-                            userId: user.id
+                            user: {
+                                id: user.id
+                            }
                         });
                     })
-                    .catch(err => {
+                    .catch(() => {
                         res.status(500).json({
                             success: false,
-                            msg: `The user could not be registered`,
-                            error: err
+                            msg: `The user could not be registered`
                         });
                     });
             });
@@ -81,48 +82,57 @@ router.post('/register', async (req, res, next) => {
     });
 });
 
-// router.post('/authenticate', (req, res, next) => {
-//     const username = req.body.username;
-//     const password = req.body.password;
+router.post('/authenticate', (req, res, next) => {
+    const username = req.body.username;
+    const password = req.body.password;
 
-//     User.getUserByUsername(username, (err, user) => {
-//         if (err) throw err;
-//         if (!user) {
-//             return res.status(404).json({
-//                 success: false,
-//                 msg: `There is no user with username '${username}'`
-//             });
-//         }
-//         User.comparePassword(password, user.password, (err, isMatch) => {
-//             if (err) throw err;
-//             if (isMatch) {
-//                 const token = jwt.sign(user.toJSON(), config.secret, {
-//                     expiresIn: JWT_duration * 60
-//                 });
-//                 res.status(202).json({
-//                     success: true,
-//                     access_token: 'JWT ' + token,
-//                     user: {
-//                         id: user._id,
-//                         username: user.username
-//                     }
-//                 });
-//             } else {
-//                 return res.status(401).json({
-//                     success: false,
-//                     msg: 'Wrong Password'
-//                 });
-//             }
-//         });
-//     });
-// });
+    User.findOne({
+        where: {
+            username: username
+        }
+    }).then(userExist => {
+        if (userExist) {
+            User.comparePassword(password, userExist.password, (err, isMatch) => {
+                if (err) throw err;
+                if (isMatch) {
+                    const token = jwt.sign(userExist.toJSON(), config.secret, {
+                        expiresIn: JWT_duration * 60
+                    });
+                    res.status(202).json({
+                        success: true,
+                        access_token: 'JWT ' + token,
+                        user: {
+                            id: userExist.id,
+                            username: userExist.username
+                        }
+                    });
+                } else {
+                    return res.status(401).json({
+                        success: false,
+                        msg: 'Wrong Password'
+                    });
+                }
+            });
+        } else {
+            return res.status(404).json({
+                success: false,
+                msg: `There is no user with username '${username}'`
+            });
+        }
+    }).catch(() => {
+        res.status(500).json({
+            success: false,
+            msg: `The user could not be registered`
+        });
+    });
+});
 
-// router.get('/profile', passport.authenticate('jwt', { session: false }),
-//     (req, res, next) => {
-//         res.status(202).json({
-//             id: req.user._id,
-//             username: req.user.username
-//         });
-//     });
+router.get('/profile', passport.authenticate('jwt', { session: false }),
+    (req, res, next) => {
+        res.status(202).json({
+            id: req.user.id,
+            username: req.user.username
+        });
+    });
 
 module.exports = router;
