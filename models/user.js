@@ -17,7 +17,6 @@ const User = db.define('Users', {
 
 module.exports = User;
 
-
 module.exports.comparePassword = (candidatePassword, hash, callback) => {
     bcrypt.compare(candidatePassword, hash, (err, isMatch) => {
         if (err) throw err;
