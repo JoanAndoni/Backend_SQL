@@ -15,70 +15,70 @@ const saltRounds = 10;
 
 const router = Router();
 
-router.post('/getById', (req, res, next) => {
+router.post('/getById', async (req, res, next) => {
     let userId = req.body.id;
     User.findByPk(userId)
         .then(user => {
-            res.status(201).json({
-                user: user
-            })
+            if (user) {
+                res.status(201).json({
+                    success: true,
+                    user: user
+                })
+            } else {
+                res.status(403).json({
+                    success: false,
+                    msg: `The user with id '${userId}' could not be found`
+                });
+            }
         })
-        .catch(err => {
+        .catch(() => {
             res.status(403).json({
                 success: false,
-                msg: `The user with id '${userId}' could not be found`,
-                error: err
+                msg: `The user with id '${userId}' could not be found`
             });
         });
 });
 
-router.post('/register', (req, res, next) => {
+router.post('/register', async (req, res, next) => {
     let newUser = { ...req.body };
 
-    // User.getUserByUsername(newUser.username, (err, user) => {
-    //     if (err) throw err;
-    //     if (user) {
-    //         return res.status(403).json({
-    //             success: false,
-    //             msg: `The user with username '${newUser.username}' already exist`
-    //         });
-    //     }
-
-    bcrypt.hash(newUser.password, saltRounds, (err, hash) => {
-        if (err) throw err;
-        newUser.password = hash;
-        User.create(newUser)
-            .then(user => {
-                res.status(201).json({
-                    success: true,
-                    msg: `User registered`,
-                    user: user
-                });
-            })
-            .catch(err => {
-                res.status(500).json({
-                    success: false,
-                    msg: `The user could not be registered`,
-                    error: err
-                });
+    User.findOne({
+        where: {
+            username: newUser.username
+        }
+    }).then(userExist => {
+        if (userExist === null) {
+            bcrypt.hash(newUser.password, saltRounds, (err, hash) => {
+                if (err) throw err;
+                newUser.password = hash;
+                User.create(newUser)
+                    .then(user => {
+                        res.status(201).json({
+                            success: true,
+                            msg: `User registered`,
+                            userId: user.id
+                        });
+                    })
+                    .catch(err => {
+                        res.status(500).json({
+                            success: false,
+                            msg: `The user could not be registered`,
+                            error: err
+                        });
+                    });
             });
+        } else {
+            res.status(403).json({
+                success: false,
+                msg: `The user with username '${newUser.username}' already exist`
+            });
+        }
+    }).catch(() => {
+        res.status(500).json({
+            success: false,
+            msg: `The user could not be registered`
+        });
     });
-
-    // User.addUser(newUser, (err, user) => {
-    //     if (err) {
-    //         res.status(500).json({
-    //             success: false,
-    //             msg: `The user could not be registered`
-    //         });
-    //     } else if (user) {
-    //         res.status(201).json({
-    //             success: true,
-    //             msg: `User registered`,
-    //             userId: user._id
-    //         });
-    //     }
-    // });
-    // });
 });
 
 // router.post('/authenticate', (req, res, next) => {
