@@ -3,6 +3,7 @@ import path from 'path';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import passport from 'passport';
+require('dotenv').config()
 import db from './config/database';
 
 db.authenticate()

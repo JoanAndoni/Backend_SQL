@@ -8,7 +8,6 @@ import { Router } from 'express';
 import passport from 'passport';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import * as config from '../config/variables';
 import User from '../models/user';
 const JWT_duration = 0.5; // Minutes
 const saltRounds = 10;
@@ -95,7 +94,7 @@ router.post('/authenticate', (req, res, next) => {
             User.comparePassword(password, userExist.password, (err, isMatch) => {
                 if (err) throw err;
                 if (isMatch) {
-                    const token = jwt.sign(userExist.toJSON(), config.secret, {
+                    const token = jwt.sign(userExist.toJSON(), process.env.SECRET, {
                         expiresIn: JWT_duration * 60
                     });
                     res.status(202).json({

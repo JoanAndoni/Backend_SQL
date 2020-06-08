@@ -1,8 +1,8 @@
-import * as config from './variables';
 import Sequelize from 'sequelize';
+require('dotenv').config()
 
-module.exports = new Sequelize(config.bdConfig.database, config.bdConfig.username, config.bdConfig.password, {
-    host: 'localhost',
+module.exports = new Sequelize(process.env.DB_NAME, process.env.DB_USERNAME, process.env.DB_PASSWORD, {
+    host: process.env.DB_HOST,
     dialect: 'postgres'
 });
 
