@@ -33,7 +33,7 @@ const setTestingAccount = async () => {
     let transporter = nodemailer.createTransport({
         host: "smtp.ethereal.email",
         port: 587,
-        secure: false, // true for 465, false for other ports
+        secure: false,
         auth: {
             user: testAccount.user,
             pass: testAccount.pass,
@@ -44,13 +44,13 @@ const setTestingAccount = async () => {
 
 const setSMTPAccount = async () => {
     let transporter = nodemailer.createTransport({
-        host: "smtp.elasticemail.com",
-        port: 2525,
-        secure: false, // true for 465, false for other ports
+        host: process.env.SMTP_HOST,
+        port: process.env.SMTP_PORT,
+        secure: process.env.SMTP_PORT === '465' ? true : false,
         auth: {
             user: process.env.SMTP_USERNAME,
             pass: process.env.SMTP_PASSWORD,
-        },
+        }
     });
     return transporter;
 }
