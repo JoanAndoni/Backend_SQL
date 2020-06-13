@@ -3,6 +3,7 @@ import path from 'path';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import passport from 'passport';
+import morgan from 'morgan';
 require('dotenv').config()
 import db from './config/database';
 
@@ -12,6 +13,7 @@ db.authenticate()
 
 const app = express();
 app.use(cors());
+app.use(morgan('dev'));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json());
 app.use(passport.initialize());
